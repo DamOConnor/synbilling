@@ -1,0 +1,17 @@
+{
+	"name": "030 Create Proc",
+	"properties": {
+		"content": {
+			"query": "USE srvlessBilling;\nGO\n\nCREATE OR ALTER PROC usp_createBillingView\n    @storageAccount NVARCHAR(500),\n    @filePath       NVARCHAR(500),\n    @debug_yn       BIT\n\nAS\nSET NOCOUNT ON\n\n-- Parameters\n-- @storageAccount  - The URL of the storage account, not including container name\n--         Example: https://strgbilling.dfs.core.windows.net/\n-- @filePath        - the full filepath for the view being created starting with container name\n--         Example: {container name}/{filepath}/{filename}\n--         Example: datalake/raw/billing/year=2023/month=10/day=31/billing.csv\n-- @debug_yn        - Either print or execute the dynamic SQL\n--         Example: 1 or 0\n\nDECLARE @sql NVARCHAR(MAX)\n\nSELECT @storageAccount AS storageAccount, @filePath AS [filePath], @debug_yn AS debug_yn\n\nSET @sql = 'CREATE OR ALTER VIEW vw_billing_latest\nAS\nWITH cte AS (\nSELECT TOP 100 *, ''{'' + tags + ''}'' AS jsonTags\nFROM OPENROWSET (\n    BULK ''' + @storageAccount + @filePath + ''',\n    FORMAT = ''CSV'',\n    PARSER_VERSION = ''2.0'',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, ''$.tag1'' ) AS tag1,\n    JSON_VALUE( jsonTags, ''$.tag2'' ) AS tag2,\n    JSON_VALUE( jsonTags, ''$.tag3'' ) AS tag3,\n    JSON_VALUE( jsonTags, ''$.\"CUST-CODE\"'' ) AS custCode\nFROM cte;'\n\nIF @debug_yn = 1\n    PRINT @sql\nELSE\nBEGIN\n    PRINT @sql\n    EXEC (@sql)\nEND\nGO\n\nEXEC usp_createBillingView \n    'https://strgbilling.dfs.core.windows.net/', \n    'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    1\nGO\n\nEXEC usp_createBillingView \n    'https://strgbilling.dfs.core.windows.net/', \n    'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    0\nGO\n\n/*\nCREATE OR ALTER VIEW vw_billing_latest\nAS\nWITH cte AS (\nSELECT TOP 100 *, '{' + tags + '}' AS jsonTags\nFROM OPENROWSET (\n    BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1,\n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2,\n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3,\n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode\nFROM cte;\nGO\n\n-- DROP VIEW vw_billing_latest\nSELECT * FROM vw_billing_latest;\n*/",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "srvlessBilling",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

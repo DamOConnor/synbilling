@@ -1,0 +1,39 @@
+{
+	"name": "trg_billing",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Pipeline Storage Trigger working",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"pFolderPath": "@triggerBody().folderPath ",
+					"pFileName": "@triggerBody().fileName"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "pl_callCreateViewProc",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"pFolderPath": "@triggerBody().folderPath",
+					"pFileName": "@triggerBody().fileName"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/datalake/blobs/raw/billing",
+			"blobPathEndsWith": ".csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

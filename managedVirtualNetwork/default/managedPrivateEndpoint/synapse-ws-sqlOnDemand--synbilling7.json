@@ -1,0 +1,10 @@
+{
+	"name": "synapse-ws-sqlOnDemand--synbilling7",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Synapse/workspaces/synbilling7",
+		"groupId": "sqlOnDemand",
+		"fqdns": [
+			"synbilling7-ondemand.f2cda72d-0695-4032-a549-9263c91605b0.sql.azuresynapse.net"
+		]
+	}
+}

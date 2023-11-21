@@ -1,0 +1,10 @@
+{
+	"name": "synapse-ws-custstgacct--synbilling7-strgbilling",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling",
+		"groupId": "dfs",
+		"fqdns": [
+			"strgbilling.dfs.core.windows.net"
+		]
+	}
+}

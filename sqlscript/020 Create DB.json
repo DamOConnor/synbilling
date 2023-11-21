@@ -1,0 +1,17 @@
+{
+	"name": "020 Create DB",
+	"properties": {
+		"content": {
+			"query": "CREATE DATABASE srvlessBilling;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,90 @@
+{
+	"name": "pl_callCreateViewProc",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable Filepath",
+				"description": "The pFolderPath starts with the container name (eg datalake) so strip it off using the skip function as it not required for OPENROWSET",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilepath",
+					"value": {
+						"value": "@join(skip(split(pipeline().parameters.pFolderPath, '/'), 1), '/')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Stored proc Create Billing View",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Set variable Filepath",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_createBillingView]",
+					"storedProcedureParameters": {
+						"debug_yn": {
+							"value": "False",
+							"type": "Boolean"
+						},
+						"filePath": {
+							"value": {
+								"value": "@pipeline().parameters.pFolderPath",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"storageAccount": {
+							"value": "https://strgbilling.dfs.core.windows.net/",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_serverless",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"pFolderPath": {
+				"type": "string",
+				"defaultValue": "datalake/raw/billing/year=2023/month=10/day=31"
+			},
+			"pFileName": {
+				"type": "string",
+				"defaultValue": "billing.csv"
+			}
+		},
+		"variables": {
+			"varWorking": {
+				"type": "String"
+			},
+			"varFilepath": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-11-20T14:49:00Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

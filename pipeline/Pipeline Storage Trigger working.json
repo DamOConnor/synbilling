@@ -1,0 +1,315 @@
+{
+	"name": "Pipeline Storage Trigger working",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable Working",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varWorking",
+					"value": {
+						"value": "@concat(pipeline().parameters.pFolderPath,'/',pipeline().parameters.pFileName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable Year",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "If YearPos Not Found",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "intYear",
+					"value": {
+						"value": "@int(substring(pipeline().parameters.pFolderPath, add(variables('intYearPos'), 5), 4))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable Array",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varArray",
+					"value": {
+						"value": "@split(pipeline().parameters.pFolderPath, '/')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable YearPos",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "intYearPos",
+					"value": {
+						"value": "@indexOf(pipeline().parameters.pFolderPath, 'year=')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Filter1",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@split(pipeline().parameters.pFolderPath, '/')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item(), '=')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If YearPos Not Found",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set variable YearPos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('intYearPos'), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Fail YearPos Not Found",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Position of Year value not found in path",
+								"errorCode": "5001"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set variable Working 2",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Filter1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varWorking",
+					"value": {
+						"value": "@activity('Filter1').output.Value[0]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable MonthPos",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "intMonthPos",
+					"value": {
+						"value": "@indexOf(pipeline().parameters.pFolderPath, 'month=')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If MonthPos Not Found",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set variable MonthPos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('intMonthPos'), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Fail MonthPos Not Found",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Position of Month value not found in path",
+								"errorCode": "5001"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set variable Month",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "If MonthPos Not Found",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "intMonth",
+					"value": {
+						"value": "@int(substring(pipeline().parameters.pFolderPath, add(variables('intMonthPos'), 6), 2))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable yyyyMM",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set variable Month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set variable Year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varWorking",
+					"value": {
+						"value": "@concat(variables('intYear'), '/', variables('intMonth'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable Filepath",
+				"description": "The pFolderPath starts with the container name (eg datalake) so strip it off using the skip function",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilepath",
+					"value": {
+						"value": "@join(skip(split(pipeline().parameters.pFolderPath, '/'), 1), '/')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pFolderPath": {
+				"type": "string",
+				"defaultValue": "datalake/raw/billing/year=2023/month=10/day=31"
+			},
+			"pFileName": {
+				"type": "string",
+				"defaultValue": "billing.csv"
+			}
+		},
+		"variables": {
+			"varWorking": {
+				"type": "String"
+			},
+			"intMonth": {
+				"type": "Integer"
+			},
+			"intYear": {
+				"type": "Integer"
+			},
+			"intDay": {
+				"type": "Integer"
+			},
+			"varArray": {
+				"type": "Array"
+			},
+			"intYearPos": {
+				"type": "Integer"
+			},
+			"intMonthPos": {
+				"type": "Integer"
+			},
+			"intDayPos": {
+				"type": "Integer"
+			},
+			"varFilepath": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-11-17T18:29:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

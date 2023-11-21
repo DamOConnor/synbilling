@@ -1,0 +1,17 @@
+{
+	"name": "040 CETAS working",
+	"properties": {
+		"content": {
+			"query": "USE srvlessBilling\nGO\n\nIF EXISTS ( SELECT * FROM sys.tables WHERE name = 'billing_202311' )\n    DROP EXTERNAL TABLE billing_202311;\nGO\n\nIF EXISTS ( SELECT * FROM sys.external_data_sources WHERE name = 'ds_billing' )\n    DROP EXTERNAL DATA SOURCE ds_billing;\nGO\n\nIF NOT EXISTS ( SELECT * FROM sys.external_data_sources WHERE name = 'ds_billing' )\n\tCREATE EXTERNAL DATA SOURCE ds_billing WITH (\n\t\tLOCATION = N'https://strgbilling.dfs.core.windows.net/datalake/enriched/billing'\n\t\t--CREDENTIAL = cred_managedIdentity\n\t\t)\nGO\n\nIF EXISTS ( SELECT * FROM sys.external_file_formats WHERE name = 'ff_parquet' )\n    DROP EXTERNAL FILE FORMAT ff_parquet;\nGO\n\nIF NOT EXISTS ( SELECT * FROM sys.external_file_formats WHERE name = 'ff_parquet' )\nCREATE EXTERNAL FILE FORMAT ff_parquet\nWITH (\n\tFORMAT_TYPE = PARQUET\n);\nGO\n\nCREATE EXTERNAL TABLE billing_202311\nWITH\n(\n    LOCATION = '/202311/billing_202311',\n    DATA_SOURCE = ds_billing,\n    FILE_FORMAT = ff_parquet\n)\nAS\nWITH cte AS (\nSELECT *, '{' + tags + '}' AS jsonTags\nFROM OPENROWSET (\n    BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=11/day=01/billing.csv',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1,\n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2,\n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3,\n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode\nFROM cte;\nGO\n\n\nSELECT *\nFROM billing_202310;\n\nSELECT *\nFROM billing_202311;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "srvlessBilling",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

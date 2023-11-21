@@ -1,0 +1,17 @@
+{
+	"name": "041 CETAS Proc",
+	"properties": {
+		"content": {
+			"query": "USE srvlessBilling\nGO\n\nCREATE OR ALTER PROC usp_createBillingTable\n    @storageAccount     NVARCHAR(500),\n    @filePath           NVARCHAR(500),\n    @yyyyMMtimestamp    CHAR(6),\n    @debug_yn           BIT\n\nAS\nSET NOCOUNT ON\n\n-- Parameters\n-- @storageAccount  - The URL of the storage account, not including container name\n--         Example: https://strgbilling.dfs.core.windows.net/\n-- @filePath        - the full filepath for the view being created starting with container name\n--         Example: {container name}/{filepath}/{filename}\n--         Example: datalake/raw/billing/year=2023/month=10/day=31/billing.csv\n-- @debug_yn        - Either print or execute the dynamic SQL\n--         Example: 1 or 0\n-- @yyyyMMtimestamp - date timestamp in yyyyMM format for the location of the monthly table\n--         Example: 202310\n\nDECLARE @sql NVARCHAR(MAX)\n\nSELECT @storageAccount AS storageAccount, @filePath AS [filePath], @yyyyMMtimestamp AS yyyyMMtimestamp, @debug_yn AS debug_yn\n\n-- Set up the main template\nSET @sql = 'CREATE EXTERNAL TABLE billing_@yyyyMMtimestamp\nWITH\n(\n    LOCATION = ''/@yyyyMMtimestamp/billing_@yyyyMMtimestamp'',\n    DATA_SOURCE = ds_billing,\n    FILE_FORMAT = ff_parquet\n)\nAS\nWITH cte AS (\nSELECT *, ''{'' + tags + ''}'' AS jsonTags\nFROM OPENROWSET (\n    BULK ''@storageAccount@filePath'',\n    FORMAT = ''CSV'',\n    PARSER_VERSION = ''2.0'',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, ''$.tag1'' ) AS tag1,\n    JSON_VALUE( jsonTags, ''$.tag2'' ) AS tag2,\n    JSON_VALUE( jsonTags, ''$.tag3'' ) AS tag3,\n    JSON_VALUE( jsonTags, ''$.\"CUST-CODE\"'' ) AS custCode\nFROM cte;'\n\n-- Replace parameters in the dynamic sql\nSET @sql = REPLACE( @sql, '@yyyyMMtimestamp', @yyyyMMtimestamp )\nSET @sql = REPLACE( @sql, '@storageAccount', @storageAccount )\nSET @sql = REPLACE( @sql, '@filePath', @filePath )\n\n\nIF @debug_yn = 1\n    PRINT @sql\nELSE\nBEGIN\n    PRINT @sql\n    EXEC (@sql)\nEND\nGO\n\nDROP EXTERNAL TABLE billing_202310;\nDROP EXTERNAL TABLE billing_202311;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    @yyyyMMtimestamp = '202310',\n    @debug_yn = 1;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    @yyyyMMtimestamp = '202310',\n    @debug_yn = 0;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=11/day=01/billing.csv',\n    @yyyyMMtimestamp = '202311',\n    @debug_yn = 0;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "srvlessBilling",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
