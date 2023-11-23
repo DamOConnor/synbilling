@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "0086dbcc-4fbd-4a32-8a13-6d9ce065b536"
+				"spark.autotune.trackingId": "26ad33cf-71d9-4d5a-95f2-cf122d8793a6"
 			}
 		},
 		"metadata": {
@@ -66,7 +66,7 @@
 					"# If the schema is not predefined, you can set inferSchema to True in the options below\r\n",
 					"from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType\r\n",
 					"schema = StructType([\r\n",
-					"    StructField(\"rowId\", IntegerType(), True),\r\n",
+					"    StructField(\"rowId\", IntegerType(), False),\r\n",
 					"    StructField(\"col1\", StringType(), True),\r\n",
 					"    StructField(\"col2\", IntegerType(), True),\r\n",
 					"    StructField(\"col3\", DateType(), True),\r\n",
@@ -83,20 +83,9 @@
 					"    escape = '\"',\r\n",
 					"    dateFormat = \"yyyy-MM-dd\",\r\n",
 					"    multiLine = True  # This allows for newline characters within quoted strings\r\n",
-					")\r\n",
-					"\r\n",
-					"# Show the DataFrame to verify correct import\r\n",
-					"df.show(truncate=False)\r\n",
-					"\r\n",
-					"# After processing you can save it into the desired format or perform other transformations\r\n",
-					"#%%pyspark\r\n",
-					"#df = spark.read.load('', format='csv'\r\n",
-					"## If header exists uncomment line below\r\n",
-					"##, header=True\r\n",
-					"#)\r\n",
-					"#display(df.limit(10))"
+					")"
 				],
-				"execution_count": 4
+				"execution_count": 15
 			},
 			{
 				"cell_type": "code",
@@ -115,7 +104,25 @@
 				"source": [
 					"display(df)"
 				],
-				"execution_count": 5
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df.printSchema()"
+				],
+				"execution_count": 17
 			}
 		]
 	}
