@@ -17,8 +17,8 @@
 				}
 			},
 			{
-				"name": "Web1",
-				"type": "WebActivity",
+				"name": "Copy data1",
+				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -29,19 +29,23 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://api.thecatapi.com/v1/images/search",
-					"connectVia": {
-						"referenceName": "AutoResolveIntegrationRuntime",
-						"type": "IntegrationRuntimeReference"
-					},
-					"method": "GET",
-					"headers": {
-						"x-api-key": {
-							"value": "live_BQotUcu6teIL3Qm9rEKIpaq2EqTpqqHn75aCct7P0Ib7gzZkKdIu78kONOFnN1eQ",
-							"type": "Expression"
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
 						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "RestResource1",
+						"type": "DatasetReference"
 					}
-				}
+				]
 			}
 		],
 		"variables": {
