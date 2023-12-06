@@ -1,0 +1,35 @@
+{
+	"name": "pl_catsTrigger",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varWorking",
+					"value": "test"
+				}
+			}
+		],
+		"parameters": {
+			"pFolderPath": {
+				"type": "string"
+			},
+			"pFileName": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"varWorking": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
