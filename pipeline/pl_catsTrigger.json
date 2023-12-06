@@ -131,7 +131,7 @@
 							"type": "String"
 						},
 						"shortDesc": {
-							"value": "json",
+							"value": "pl_catsTrigger",
 							"type": "String"
 						}
 					}
