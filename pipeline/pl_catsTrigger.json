@@ -31,7 +31,7 @@
 				"typeProperties": {
 					"variableName": "varJson",
 					"value": {
-						"value": "{\n  \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n  \"pFileName\": \"@{pipeline().parameters.pFileName}\",\n  \"container\": \"@{pipeline().parameters.pFolderPath}\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"FolderPathArray\": [\"@{join(split(pipeline().parameters.pFolderPath, '/'), ',')}\"]\n}",
+						"value": "{\n  \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n  \"pFileName\": \"@{pipeline().parameters.pFileName}\",\n  \"container\": \"@{first(split(pipeline().parameters.pFolderPath, '/'))}\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"FolderPathArray\": [\"@{join(split(pipeline().parameters.pFolderPath, '/'), ',')}\"]\n}",
 						"type": "Expression"
 					}
 				}
@@ -49,6 +49,30 @@
 					"variableName": "arrWorking",
 					"value": {
 						"value": "@split(pipeline().parameters.pFolderPath, '/' )",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable Array 1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set variable Array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varWorking",
+					"value": {
+						"value": "@first(variables('arrWorking'))",
 						"type": "Expression"
 					}
 				}
