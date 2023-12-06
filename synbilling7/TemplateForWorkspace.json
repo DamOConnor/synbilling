@@ -492,7 +492,10 @@
 						"userProperties": [],
 						"typeProperties": {
 							"variableName": "varWorking",
-							"value": "test"
+							"value": {
+								"value": "@concat(pipeline().parameters.pFolderPath,'/',pipeline().parameters.pFileName)",
+								"type": "Expression"
+							}
 						}
 					}
 				],
