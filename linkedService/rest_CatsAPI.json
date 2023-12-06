@@ -1,6 +1,5 @@
 {
 	"name": "rest_CatsAPI",
-	"type": "Microsoft.Synapse/workspaces/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "RestService",
@@ -10,8 +9,12 @@
 			"authenticationType": "Anonymous",
 			"authHeaders": {
 				"x-api-key": {
-					"type": "SecureString",
-					"value": "**********"
+					"type": "AzureKeyVaultSecret",
+					"store": {
+						"referenceName": "ls_akvbilling",
+						"type": "LinkedServiceReference"
+					},
+					"secretName": "CatsAPISecret"
 				}
 			}
 		},
@@ -19,5 +22,6 @@
 			"referenceName": "AutoResolveIntegrationRuntime",
 			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
 }
