@@ -1,0 +1,23 @@
+{
+	"name": "rest_CatsAPI",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://api.thecatapi.com/v1/images/search",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous",
+			"authHeaders": {
+				"x-api-key": {
+					"type": "SecureString",
+					"value": "**********"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
