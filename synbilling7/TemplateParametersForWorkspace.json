@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "synbilling7"
+		},
+		"ls_serverless_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=synbilling7-ondemand.sql.azuresynapse.net;Initial Catalog=srvlessBilling"
+		},
+		"synbilling7-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synbilling7.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"synbilling7-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://strgbilling.dfs.core.windows.net"
+		},
+		"trg_billing_properties_Pipeline Storage Trigger working_parameters_pFolderPath": {
+			"value": "@triggerBody().folderPath "
+		},
+		"trg_billing_properties_Pipeline Storage Trigger working_parameters_pFileName": {
+			"value": "@triggerBody().fileName"
+		},
+		"trg_billing_properties_pl_callCreateViewProc_parameters_pFolderPath": {
+			"value": "@triggerBody().folderPath"
+		},
+		"trg_billing_properties_pl_callCreateViewProc_parameters_pFileName": {
+			"value": "@triggerBody().fileName"
+		},
+		"trg_billing_properties_typeProperties_scope": {
+			"value": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling"
+		},
+		"trg_cats_properties_pl_catsTrigger_parameters_pFolderPath": {
+			"value": "@triggerBody().folderPath "
+		},
+		"trg_cats_properties_pl_catsTrigger_parameters_pFileName": {
+			"value": "@triggerBody().fileName"
+		},
+		"trg_cats_properties_typeProperties_scope": {
+			"value": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling"
+		}
+	}
+}

@@ -1,0 +1,1029 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "synbilling7"
+		},
+		"ls_serverless_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_serverless'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=synbilling7-ondemand.sql.azuresynapse.net;Initial Catalog=srvlessBilling"
+		},
+		"synbilling7-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'synbilling7-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synbilling7.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"synbilling7-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://strgbilling.dfs.core.windows.net"
+		},
+		"trg_billing_properties_Pipeline Storage Trigger working_parameters_pFolderPath": {
+			"type": "string",
+			"defaultValue": "@triggerBody().folderPath "
+		},
+		"trg_billing_properties_Pipeline Storage Trigger working_parameters_pFileName": {
+			"type": "string",
+			"defaultValue": "@triggerBody().fileName"
+		},
+		"trg_billing_properties_pl_callCreateViewProc_parameters_pFolderPath": {
+			"type": "string",
+			"defaultValue": "@triggerBody().folderPath"
+		},
+		"trg_billing_properties_pl_callCreateViewProc_parameters_pFileName": {
+			"type": "string",
+			"defaultValue": "@triggerBody().fileName"
+		},
+		"trg_billing_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling"
+		},
+		"trg_cats_properties_pl_catsTrigger_parameters_pFolderPath": {
+			"type": "string",
+			"defaultValue": "@triggerBody().folderPath "
+		},
+		"trg_cats_properties_pl_catsTrigger_parameters_pFileName": {
+			"type": "string",
+			"defaultValue": "@triggerBody().fileName"
+		},
+		"trg_cats_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline Storage Trigger working')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set variable Working",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": {
+								"value": "@concat(pipeline().parameters.pFolderPath,'/',pipeline().parameters.pFileName)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Year",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "If YearPos Not Found",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "intYear",
+							"value": {
+								"value": "@int(substring(pipeline().parameters.pFolderPath, add(variables('intYearPos'), 5), 4))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Array",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varArray",
+							"value": {
+								"value": "@split(pipeline().parameters.pFolderPath, '/')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable YearPos",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "intYearPos",
+							"value": {
+								"value": "@indexOf(pipeline().parameters.pFolderPath, 'year=')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Filter1",
+						"type": "Filter",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@split(pipeline().parameters.pFolderPath, '/')",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@contains(item(), '=')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "If YearPos Not Found",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Set variable YearPos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(variables('intYearPos'), 0)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Fail YearPos Not Found",
+									"type": "Fail",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "Position of Year value not found in path",
+										"errorCode": "5001"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Set variable Working 2",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Filter1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": {
+								"value": "@activity('Filter1').output.Value[0]",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable MonthPos",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "intMonthPos",
+							"value": {
+								"value": "@indexOf(pipeline().parameters.pFolderPath, 'month=')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "If MonthPos Not Found",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Set variable MonthPos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(variables('intMonthPos'), 0)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Fail MonthPos Not Found",
+									"type": "Fail",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "Position of Month value not found in path",
+										"errorCode": "5001"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Set variable Month",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "If MonthPos Not Found",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "intMonth",
+							"value": {
+								"value": "@int(substring(pipeline().parameters.pFolderPath, add(variables('intMonthPos'), 6), 2))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable yyyyMM",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Set variable Month",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set variable Year",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": {
+								"value": "@concat(variables('intYear'), '/', variables('intMonth'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Filepath",
+						"description": "The pFolderPath starts with the container name (eg datalake) so strip it off using the skip function",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varFilepath",
+							"value": {
+								"value": "@join(skip(split(pipeline().parameters.pFolderPath, '/'), 1), '/')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pFolderPath": {
+						"type": "string",
+						"defaultValue": "datalake/raw/billing/year=2023/month=10/day=31"
+					},
+					"pFileName": {
+						"type": "string",
+						"defaultValue": "billing.csv"
+					}
+				},
+				"variables": {
+					"varWorking": {
+						"type": "String"
+					},
+					"intMonth": {
+						"type": "Integer"
+					},
+					"intYear": {
+						"type": "Integer"
+					},
+					"intDay": {
+						"type": "Integer"
+					},
+					"varArray": {
+						"type": "Array"
+					},
+					"intYearPos": {
+						"type": "Integer"
+					},
+					"intMonthPos": {
+						"type": "Integer"
+					},
+					"intDayPos": {
+						"type": "Integer"
+					},
+					"varFilepath": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-11-17T18:29:57Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/pl_callCreateViewProc')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set variable Filepath",
+						"description": "The pFolderPath starts with the container name (eg datalake) so strip it off using the skip function as it not required for OPENROWSET",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varFilepath",
+							"value": {
+								"value": "@join(skip(split(pipeline().parameters.pFolderPath, '/'), 1), '/')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Stored proc Create Billing View",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Set variable Filepath",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[dbo].[usp_createBillingView]",
+							"storedProcedureParameters": {
+								"debug_yn": {
+									"value": "False",
+									"type": "Boolean"
+								},
+								"filePath": {
+									"value": {
+										"value": "@pipeline().parameters.pFolderPath",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"storageAccount": {
+									"value": "https://strgbilling.dfs.core.windows.net/",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_serverless",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pFolderPath": {
+						"type": "string",
+						"defaultValue": "datalake/raw/billing/year=2023/month=10/day=31"
+					},
+					"pFileName": {
+						"type": "string",
+						"defaultValue": "billing.csv"
+					}
+				},
+				"variables": {
+					"varWorking": {
+						"type": "String"
+					},
+					"varFilepath": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-11-20T14:49:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ls_serverless')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/pl_catsTrigger')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set variable1",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": "test"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pFolderPath": {
+						"type": "string"
+					},
+					"pFileName": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"varWorking": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_serverless')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_serverless_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synbilling7-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('synbilling7-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synbilling7-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('synbilling7-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/trg_billing')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Pipeline Storage Trigger working",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"pFolderPath": "[parameters('trg_billing_properties_Pipeline Storage Trigger working_parameters_pFolderPath')]",
+							"pFileName": "[parameters('trg_billing_properties_Pipeline Storage Trigger working_parameters_pFileName')]"
+						}
+					},
+					{
+						"pipelineReference": {
+							"referenceName": "pl_callCreateViewProc",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"pFolderPath": "[parameters('trg_billing_properties_pl_callCreateViewProc_parameters_pFolderPath')]",
+							"pFileName": "[parameters('trg_billing_properties_pl_callCreateViewProc_parameters_pFileName')]"
+						}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/datalake/blobs/raw/billing",
+					"blobPathEndsWith": ".csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('trg_billing_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Pipeline Storage Trigger working')]",
+				"[concat(variables('workspaceId'), '/pipelines/pl_callCreateViewProc')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/trg_cats')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_catsTrigger",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"pFolderPath": "[parameters('trg_cats_properties_pl_catsTrigger_parameters_pFolderPath')]",
+							"pFileName": "[parameters('trg_cats_properties_pl_catsTrigger_parameters_pFileName')]"
+						}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/images/blobs/",
+					"blobPathEndsWith": ".jpg",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('trg_cats_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/pl_catsTrigger')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/010 billing working')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": ";WITH cte AS (\n    SELECT *, '{' + tags + '}' AS jsonTags\n    FROM OPENROWSET (\n        BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT\n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1,\n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2,\n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3,\n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode,\n    *\nFROM cte;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/020 Create DB')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE DATABASE srvlessBilling;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/030 Create Proc')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE srvlessBilling;\nGO\n\nCREATE OR ALTER PROC usp_createBillingView\n    @storageAccount NVARCHAR(500),\n    @filePath       NVARCHAR(500),\n    @debug_yn       BIT\n\nAS\nSET NOCOUNT ON\n\n-- Parameters\n-- @storageAccount  - The URL of the storage account, not including container name\n--         Example: https://strgbilling.dfs.core.windows.net/\n-- @filePath        - the full filepath for the view being created starting with container name\n--         Example: {container name}/{filepath}/{filename}\n--         Example: datalake/raw/billing/year=2023/month=10/day=31/billing.csv\n-- @debug_yn        - Either print or execute the dynamic SQL\n--         Example: 1 or 0\n\nDECLARE @sql NVARCHAR(MAX)\n\nSELECT @storageAccount AS storageAccount, @filePath AS [filePath], @debug_yn AS debug_yn\n\nSET @sql = 'CREATE OR ALTER VIEW vw_billing_latest\nAS\nWITH cte AS (\nSELECT TOP 100 *, ''{'' + tags + ''}'' AS jsonTags\nFROM OPENROWSET (\n    BULK ''' + @storageAccount + @filePath + ''',\n    FORMAT = ''CSV'',\n    PARSER_VERSION = ''2.0'',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, ''$.tag1'' ) AS tag1,\n    JSON_VALUE( jsonTags, ''$.tag2'' ) AS tag2,\n    JSON_VALUE( jsonTags, ''$.tag3'' ) AS tag3,\n    JSON_VALUE( jsonTags, ''$.\"CUST-CODE\"'' ) AS custCode\nFROM cte;'\n\nIF @debug_yn = 1\n    PRINT @sql\nELSE\nBEGIN\n    PRINT @sql\n    EXEC (@sql)\nEND\nGO\n\nEXEC usp_createBillingView \n    'https://strgbilling.dfs.core.windows.net/', \n    'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    1\nGO\n\nEXEC usp_createBillingView \n    'https://strgbilling.dfs.core.windows.net/', \n    'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    0\nGO\n\n/*\nCREATE OR ALTER VIEW vw_billing_latest\nAS\nWITH cte AS (\nSELECT TOP 100 *, '{' + tags + '}' AS jsonTags\nFROM OPENROWSET (\n    BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1,\n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2,\n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3,\n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode\nFROM cte;\nGO\n\n-- DROP VIEW vw_billing_latest\nSELECT * FROM vw_billing_latest;\n*/",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "srvlessBilling",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/040 CETAS working')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE srvlessBilling\nGO\n\nIF EXISTS ( SELECT * FROM sys.tables WHERE name = 'billing_202311' )\n    DROP EXTERNAL TABLE billing_202311;\nGO\n\nIF EXISTS ( SELECT * FROM sys.external_data_sources WHERE name = 'ds_billing' )\n    DROP EXTERNAL DATA SOURCE ds_billing;\nGO\n\nIF NOT EXISTS ( SELECT * FROM sys.external_data_sources WHERE name = 'ds_billing' )\n\tCREATE EXTERNAL DATA SOURCE ds_billing WITH (\n\t\tLOCATION = N'https://strgbilling.dfs.core.windows.net/datalake/enriched/billing'\n\t\t--CREDENTIAL = cred_managedIdentity\n\t\t)\nGO\n\nIF EXISTS ( SELECT * FROM sys.external_file_formats WHERE name = 'ff_parquet' )\n    DROP EXTERNAL FILE FORMAT ff_parquet;\nGO\n\nIF NOT EXISTS ( SELECT * FROM sys.external_file_formats WHERE name = 'ff_parquet' )\nCREATE EXTERNAL FILE FORMAT ff_parquet\nWITH (\n\tFORMAT_TYPE = PARQUET\n);\nGO\n\nCREATE EXTERNAL TABLE billing_202311\nWITH\n(\n    LOCATION = '/202311/billing_202311',\n    DATA_SOURCE = ds_billing,\n    FILE_FORMAT = ff_parquet\n)\nAS\nWITH cte AS (\nSELECT *, '{' + tags + '}' AS jsonTags\nFROM OPENROWSET (\n    BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=11/day=01/billing.csv',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1,\n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2,\n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3,\n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode\nFROM cte;\nGO\n\n\nSELECT *\nFROM billing_202310;\n\nSELECT *\nFROM billing_202311;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "srvlessBilling",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/041 CETAS Proc')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE srvlessBilling\nGO\n\nCREATE OR ALTER PROC usp_createBillingTable\n    @storageAccount     NVARCHAR(500),\n    @filePath           NVARCHAR(500),\n    @yyyyMMtimestamp    CHAR(6),\n    @debug_yn           BIT\n\nAS\nSET NOCOUNT ON\n\n-- Parameters\n-- @storageAccount  - The URL of the storage account, not including container name\n--         Example: https://strgbilling.dfs.core.windows.net/\n-- @filePath        - the full filepath for the view being created starting with container name\n--         Example: {container name}/{filepath}/{filename}\n--         Example: datalake/raw/billing/year=2023/month=10/day=31/billing.csv\n-- @debug_yn        - Either print or execute the dynamic SQL\n--         Example: 1 or 0\n-- @yyyyMMtimestamp - date timestamp in yyyyMM format for the location of the monthly table\n--         Example: 202310\n\nDECLARE @sql NVARCHAR(MAX)\n\nSELECT @storageAccount AS storageAccount, @filePath AS [filePath], @yyyyMMtimestamp AS yyyyMMtimestamp, @debug_yn AS debug_yn\n\n-- Set up the main template\nSET @sql = 'CREATE EXTERNAL TABLE billing_@yyyyMMtimestamp\nWITH\n(\n    LOCATION = ''/@yyyyMMtimestamp/billing_@yyyyMMtimestamp'',\n    DATA_SOURCE = ds_billing,\n    FILE_FORMAT = ff_parquet\n)\nAS\nWITH cte AS (\nSELECT *, ''{'' + tags + ''}'' AS jsonTags\nFROM OPENROWSET (\n    BULK ''@storageAccount@filePath'',\n    FORMAT = ''CSV'',\n    PARSER_VERSION = ''2.0'',\n    HEADER_ROW = TRUE\n    ) AS [result]\n)\nSELECT *,\n    JSON_VALUE( jsonTags, ''$.tag1'' ) AS tag1,\n    JSON_VALUE( jsonTags, ''$.tag2'' ) AS tag2,\n    JSON_VALUE( jsonTags, ''$.tag3'' ) AS tag3,\n    JSON_VALUE( jsonTags, ''$.\"CUST-CODE\"'' ) AS custCode\nFROM cte;'\n\n-- Replace parameters in the dynamic sql\nSET @sql = REPLACE( @sql, '@yyyyMMtimestamp', @yyyyMMtimestamp )\nSET @sql = REPLACE( @sql, '@storageAccount', @storageAccount )\nSET @sql = REPLACE( @sql, '@filePath', @filePath )\n\n\nIF @debug_yn = 1\n    PRINT @sql\nELSE\nBEGIN\n    PRINT @sql\n    EXEC (@sql)\nEND\nGO\n\nDROP EXTERNAL TABLE billing_202310;\nDROP EXTERNAL TABLE billing_202311;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    @yyyyMMtimestamp = '202310',\n    @debug_yn = 1;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=10/day=31/billing.csv',\n    @yyyyMMtimestamp = '202310',\n    @debug_yn = 0;\n\n\nEXEC usp_createBillingTable\n    @storageAccount = 'https://strgbilling.dfs.core.windows.net/',\n    @filePath = 'datalake/raw/billing/year=2023/month=11/day=01/billing.csv',\n    @yyyyMMtimestamp = '202311',\n    @debug_yn = 0;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "srvlessBilling",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/050 working')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE srvlessBilling;\nGO\n\nDROP EXTERNAL TABLE billing_202311;\nGO\n\nCREATE EXTERNAL TABLE billing_202311\nWITH ( \n        LOCATION = '/202311/billing_202311',\n        DATA_SOURCE = ds_billing, \n        FILE_FORMAT = ff_parquet \n    )\nAS\nWITH cte AS ( \nSELECT *,\n    '{' + tags + '}' AS jsonTags\nFROM OPENROWSET ( BULK 'https://strgbilling.dfs.core.windows.net/datalake/raw/billing/year=2023/month=11/day=01/billing.csv', \n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n) AS [result]\n)\nSELECT *, \n    JSON_VALUE( jsonTags, '$.tag1' ) AS tag1, \n    JSON_VALUE( jsonTags, '$.tag2' ) AS tag2, \n    JSON_VALUE( jsonTags, '$.tag3' ) AS tag3, \n    JSON_VALUE( jsonTags, '$.\"CUST-CODE\"' ) AS custCode \nFROM cte",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "srvlessBilling",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook Billing file load')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "small33",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "898d27e4-88d4-4004-af75-936753e9632f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Synapse/workspaces/synbilling7/bigDataPools/small33",
+						"name": "small33",
+						"type": "Spark",
+						"endpoint": "https://synbilling7.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/small33",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Define the schema if known; it helps in handling data types correctly\r\n",
+							"# If the schema is not predefined, you can set inferSchema to True in the options below\r\n",
+							"from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType\r\n",
+							"\r\n",
+							"# Specify the schema\r\n",
+							"schema = StructType([\r\n",
+							"    StructField(\"rowId\", IntegerType(), False),\r\n",
+							"    StructField(\"col1\", StringType(), True),\r\n",
+							"    StructField(\"col2\", IntegerType(), True),\r\n",
+							"    StructField(\"col3\", DateType(), True),\r\n",
+							"    StructField(\"tags\", StringType(), True)\r\n",
+							"])\r\n",
+							"\r\n",
+							"# Read the CSV file into a DataFrame\r\n",
+							"df = spark.read.csv(\r\n",
+							"    \"abfss://datalake@strgbilling.dfs.core.windows.net/raw/billing/year=2023/month=10/day=31/billing.csv\",  # Replace with the path to your CSV file\r\n",
+							"    schema = schema,\r\n",
+							"    header = True,\r\n",
+							"    sep = \",\",\r\n",
+							"    quote = '\"',\r\n",
+							"    escape = '\"',\r\n",
+							"    dateFormat = \"yyyy-MM-dd\",\r\n",
+							"    multiLine = True  # This allows for newline characters within quoted strings\r\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"display(df)"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df.printSchema()"
+						],
+						"outputs": [],
+						"execution_count": 17
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/small33')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 10,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.3",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "uksouth"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-custstgacct--synbilling7-strgbilling')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Storage/storageAccounts/strgbilling",
+				"groupId": "dfs",
+				"fqdns": [
+					"strgbilling.dfs.core.windows.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-sql--synbilling7')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Synapse/workspaces/synbilling7",
+				"groupId": "sql",
+				"fqdns": [
+					"synbilling7.f2cda72d-0695-4032-a549-9263c91605b0.sql.azuresynapse.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-sqlOnDemand--synbilling7')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Synapse/workspaces/synbilling7",
+				"groupId": "sqlOnDemand",
+				"fqdns": [
+					"synbilling7-ondemand.f2cda72d-0695-4032-a549-9263c91605b0.sql.azuresynapse.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		}
+	]
+}
