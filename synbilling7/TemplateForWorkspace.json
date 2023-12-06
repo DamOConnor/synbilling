@@ -514,7 +514,7 @@
 						"typeProperties": {
 							"variableName": "varJson",
 							"value": {
-								"value": "{\n  \"Parameters\": {\n    \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n    \"pFileName\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"Variables\": {\n    \"container\": \"@{first(pipeline().parameters.pFolderPath)}\",\n    \"filename\": \"@{first(split(pipeline().parameters.pFileName, '.'))}\",\n    \"extension\": \"@{last(split(pipeline().parameters.pFileName, '.'))}\"\n  },\n  \"FolderPathArray\": [\"a\", \"b\", \"c\"]\n}",
+								"value": "{\n  \"Parameters\": {\n    \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n    \"pFileName\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"Variables\": {\n    \"container\": \"@{first(split(pipeline().parameters.pFolderPath, '/'))}\",\n    \"filename\": \"@{first(split(pipeline().parameters.pFileName, '.'))}\",\n    \"extension\": \"@{last(split(pipeline().parameters.pFileName, '.'))}\"\n  },\n  \"FolderPathArray\": [\"a\", \"b\", \"c\"]\n}",
 								"type": "Expression"
 							}
 						}
@@ -614,7 +614,7 @@
 									"type": "String"
 								},
 								"shortDesc": {
-									"value": "json",
+									"value": "pl_catsTrigger",
 									"type": "String"
 								}
 							}
