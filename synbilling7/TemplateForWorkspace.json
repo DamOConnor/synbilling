@@ -482,7 +482,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Set variable1",
+						"name": "Set variable Working",
 						"type": "SetVariable",
 						"dependsOn": [],
 						"policy": {
@@ -494,6 +494,23 @@
 							"variableName": "varWorking",
 							"value": {
 								"value": "@concat(pipeline().parameters.pFolderPath,'/',pipeline().parameters.pFileName)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Json",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varJson",
+							"value": {
+								"value": "{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"email\": \"johndoe@example.com\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"hobbies\": [\"reading\", \"traveling\", \"photography\"]\n}",
 								"type": "Expression"
 							}
 						}
@@ -514,6 +531,9 @@
 				},
 				"variables": {
 					"varWorking": {
+						"type": "String"
+					},
+					"varJson": {
 						"type": "String"
 					}
 				},
