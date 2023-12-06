@@ -7,6 +7,10 @@
 			"metadata": "Workspace name",
 			"defaultValue": "synbilling7"
 		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
 		"ls_serverless_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_serverless'",
@@ -510,7 +514,7 @@
 						"typeProperties": {
 							"variableName": "varJson",
 							"value": {
-								"value": "{\n  \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n  \"pFileName\": \"@{pipeline().parameters.pFileName}\",\n  \"container\": \"@{pipeline().parameters.pFolderPath}\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"FolderPathArray\": [\"@{join(split(pipeline().parameters.pFolderPath, '/'), ',')}\"]\n}",
+								"value": "{\n  \"Parameters\": {\n    \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n    \"pFileName\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"Variables\": {\n    \"container\": \"@{first(pipeline().parameters.pFolderPath)}\",\n    \"filename\": \"@{first(split(pipeline().parameters.pFileName, '.'))}\",\n    \"extension\": \"@{last(split(pipeline().parameters.pFileName, '.'))}\"\n  },\n  \"FolderPathArray\": [\"a\", \"b\", \"c\"]\n}",
 								"type": "Expression"
 							}
 						}
@@ -530,6 +534,94 @@
 								"value": "@split(pipeline().parameters.pFolderPath, '/' )",
 								"type": "Expression"
 							}
+						}
+					},
+					{
+						"name": "Set variable Array 1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Set variable Array",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": {
+								"value": "@first(variables('arrWorking'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Json Output",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Set variable Json",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varWorking",
+							"value": {
+								"value": "@json(variables('varJson')).Parameters.pFileName",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Set variable Json Output",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[dbo].[usp_myLog]",
+							"storedProcedureParameters": {
+								"longDesc": {
+									"value": {
+										"value": "@variables('varJson')",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"shortDesc": {
+									"value": "json",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase1",
+							"type": "LinkedServiceReference"
 						}
 					}
 				],
@@ -559,7 +651,28 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/ls_serverless')]",

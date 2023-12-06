@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "synbilling7"
 		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
 		"ls_serverless_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=synbilling7-ondemand.sql.azuresynapse.net;Initial Catalog=srvlessBilling"
 		},
