@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "varWorking",
 					"value": {
-						"value": "@concat(pipeline().parameters.pFolderPath,'xxx',pipeline().parameters.pFileName)",
+						"value": "@concat(pipeline().parameters.pFolderPath,'/',pipeline().parameters.pFileName)",
 						"type": "Expression"
 					}
 				}
