@@ -501,10 +501,12 @@
 				},
 				"parameters": {
 					"pFolderPath": {
-						"type": "string"
+						"type": "string",
+						"defaultValue": "images"
 					},
 					"pFileName": {
-						"type": "string"
+						"type": "string",
+						"defaultValue": "cat3.jpg"
 					}
 				},
 				"variables": {
