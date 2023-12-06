@@ -31,7 +31,7 @@
 				"typeProperties": {
 					"variableName": "varJson",
 					"value": {
-						"value": "{\n  \"Parameters\": {\n    \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n    \"pFileName\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"Variables\": {\n    \"container\": \"@{pipeline().parameters.pFolderPath}\",\n    \"filename\": \"@{pipeline().parameters.pFileName}\",\n    \"extension\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"FolderPathArray\": [\"a\", \"b\", \"c\"]\n}",
+						"value": "{\n  \"Parameters\": {\n    \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n    \"pFileName\": \"@{pipeline().parameters.pFileName}\"\n  },\n  \"Variables\": {\n    \"container\": \"@{first(pipeline().parameters.pFolderPath)}\",\n    \"filename\": \"@{first(split(pipeline().parameters.pFileName, '.'))}\",\n    \"extension\": \"@{last(split(pipeline().parameters.pFileName, '.'))}\"\n  },\n  \"FolderPathArray\": [\"a\", \"b\", \"c\"]\n}",
 						"type": "Expression"
 					}
 				}
