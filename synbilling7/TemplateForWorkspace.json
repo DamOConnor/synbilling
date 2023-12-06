@@ -510,7 +510,24 @@
 						"typeProperties": {
 							"variableName": "varJson",
 							"value": {
-								"value": "{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"email\": \"johndoe@example.com\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"hobbies\": [\"reading\", \"traveling\", \"photography\"]\n}",
+								"value": "{\n  \"pFolderPath\": \"@{pipeline().parameters.pFolderPath}\",\n  \"pFileName\": \"@{pipeline().parameters.pFileName}\",\n  \"container\": \"@{pipeline().parameters.pFolderPath}\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\"\n  },\n  \"FolderPathArray\": [\"@{join(split(pipeline().parameters.pFolderPath, '/'), ',')}\"]\n}",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set variable Array",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "arrWorking",
+							"value": {
+								"value": "@split(pipeline().parameters.pFolderPath, '/' )",
 								"type": "Expression"
 							}
 						}
@@ -522,7 +539,7 @@
 				"parameters": {
 					"pFolderPath": {
 						"type": "string",
-						"defaultValue": "images"
+						"defaultValue": "images/cats"
 					},
 					"pFileName": {
 						"type": "string",
@@ -535,6 +552,9 @@
 					},
 					"varJson": {
 						"type": "String"
+					},
+					"arrWorking": {
+						"type": "Array"
 					}
 				},
 				"annotations": []
