@@ -1,0 +1,79 @@
+{
+	"name": "Notebook MSSparkUtils",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "small33",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "d434ed49-007b-493a-a4b3-ad0ea3b877e5"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/f17884ab-33f6-4e2d-830a-f5f6bcfdbb91/resourceGroups/rg_billing/providers/Microsoft.Synapse/workspaces/synbilling7/bigDataPools/small33",
+				"name": "small33",
+				"type": "Spark",
+				"endpoint": "https://synbilling7.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/small33",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.3",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"# run multiple notebooks with parameters\r\n",
+					"DAG = {\r\n",
+					"    \"activities\": [\r\n",
+					"        {\r\n",
+					"            \"name\": \"nb1\", # activity name, must be unique\r\n",
+					"            \"path\": \"Notebook Arg 1\", # notebook path\r\n",
+					"            \"timeoutPerCellInSeconds\": 90, # max timeout for each cell, default to 90 seconds\r\n",
+					"            \"args\": {\"pInput1\": 1, \"pInput2\": 2}, # notebook parameters\r\n",
+					"        },\r\n",
+					"        {\r\n",
+					"            \"name\": \"nb2\", # activity name, must be unique\r\n",
+					"            \"path\": \"Notebook Arg 1\", # notebook path\r\n",
+					"            \"timeoutPerCellInSeconds\": 90, # max timeout for each cell, default to 90 seconds\r\n",
+					"            \"args\": {\"pInput1\": 10, \"pInput2\": 20}, # notebook parameters\r\n",
+					"            \"dependencies\": [\"nb1\"] # list of activity names that this activity depends on\r\n",
+					"        }\r\n",
+					"    ]\r\n",
+					"}\r\n",
+					"\r\n",
+					"mssparkutils.notebook.runMultiple(DAG)"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
