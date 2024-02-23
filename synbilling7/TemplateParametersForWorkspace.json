@@ -14,6 +14,12 @@
 		"synbilling7-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synbilling7.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"ls_akvbilling_properties_typeProperties_baseUrl": {
+			"value": "https://akvbilling.vault.azure.net/"
+		},
+		"rest_CatsAPI_properties_typeProperties_url": {
+			"value": "https://api.thecatapi.com/v1/images/search"
+		},
 		"synbilling7-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://strgbilling.dfs.core.windows.net"
 		},
