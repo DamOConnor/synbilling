@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "0156483c-6a93-4196-9881-9d9cd1f6c42f"
+				"spark.autotune.trackingId": "c3da0a23-31e0-4054-866a-72463c0291ba"
 			}
 		},
 		"metadata": {
@@ -25,7 +25,7 @@
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_pyspark",
-				"display_name": "python"
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "python"
@@ -62,9 +62,9 @@
 					}
 				},
 				"source": [
-					"mssparkutils.notebook.runMultiple([\"Notebook Arg 1\", \"Notebook Arg 1\"])"
+					"mssparkutils.notebook.runMultiple([\"Notebook Simple 1\", \"Notebook Simple 1\"])"
 				],
-				"execution_count": null
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -90,7 +90,7 @@
 					"\r\n",
 					"mssparkutils.notebook.runMultiple(DAG)"
 				],
-				"execution_count": null
+				"execution_count": 4
 			}
 		]
 	}
